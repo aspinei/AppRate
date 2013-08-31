@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AppRate</string>
+    <string name="title">Noter %s</string>
+    <string name="message">Si vous aimez l\'application %s, prenez s\'il vous plaît le temps de la noter. Merci pour
+        votre soutien !
+    </string>
+    <string name="rate">Noter !</string>
+    <string name="remindlater">Plus tard</string>
+    <string name="nothanks">Non merci</string>
+    <string name="noplay">Pas de Play Store installé sur cet appareil</string>
+</resources>

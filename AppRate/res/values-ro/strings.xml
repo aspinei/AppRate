@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AppRate</string>
+    <string name="title">Notează %s</string>
+    <string name="message">Dacă îți place %s atunci te rog dă-i o notă pe Google Play. Mulțumesc de ajutor !"</string>
+    <string name="rate">Notează !</string>
+    <string name="remindlater">Mai târziu</string>
+    <string name="nothanks">Nu mulțumesc</string>
+    <string name="noplay">Acest device nu are Play Store instalat</string>
+</resources>
