@@ -2,9 +2,14 @@
 <resources>
     <string name="app_name">AppRate</string>
     <string name="title">Notează %s</string>
-    <string name="message">Dacă îți place %s atunci te rog dă-i o notă pe Google Play. Mulțumesc de ajutor !"</string>
-    <string name="rate">Notează !</string>
+    <string name="message">Dacă îți place %s atunci te rog dă-i o notă pe Google Play. Mulțumesc de ajutor !</string>
+    <string name="rate">Dă o notă</string>
     <string name="remindlater">Mai târziu</string>
     <string name="nothanks">Nu mulțumesc</string>
     <string name="noplay">Acest device nu are Play Store instalat</string>
+    <string name="title_social">Spune și altora despre %s</string>
+    <string name="message_social">Dacă îți place %s atunci spune și prietenilor tăi despre aplicație. Mulțumesc !
+    </string>
+    <string name="rate_social">Recomand</string>
+    <string name="recommend">Recomand aplicația: %s</string>
 </resources>

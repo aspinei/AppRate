@@ -3,10 +3,14 @@
     <string name="app_name">AppRate</string>
     <string name="title">Recenseren %s</string>
     <string name="message">Als u genieten van het gebruik %s neem even de tijd om het te beoordelen. Bedankt voor uw
-        steun !"
+        steun !
     </string>
-    <string name="rate">Een recensie schrijven !</string>
+    <string name="rate">Een recensie schrijven</string>
     <string name="remindlater">Later</string>
     <string name="dismiss">Geen dank</string>
     <string name="noplay">No Play Store geïnstalleerd op dit apparaat</string>
+    <string name="title_social">Vertellen over %s</string>
+    <string name="message_social">Als u genieten van het gebruik %s vertel je vrienden erover. Dank !</string>
+    <string name="rate_social">Aanbevelen aan vrienden</string>
+    <string name="recommend">Hey, dit is een coole app: %s</string>
 </resources>

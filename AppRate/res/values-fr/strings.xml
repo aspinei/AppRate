@@ -5,8 +5,14 @@
     <string name="message">Si vous aimez l\'application %s, prenez s\'il vous plaît le temps de la noter. Merci pour
         votre soutien !
     </string>
-    <string name="rate">Noter !</string>
+    <string name="rate">Noter</string>
     <string name="remindlater">Plus tard</string>
     <string name="nothanks">Non merci</string>
     <string name="noplay">Pas de Play Store installé sur cet appareil</string>
+    <string name="title_social">Parler de %s</string>
+    <string name="message_social">Si vous aimez l\'application %s prenez s\'il vous plaît le temps de la recommender à
+        vos amis. Merci !
+    </string>
+    <string name="rate_social">Recommender</string>
+    <string name="recommend">Je recommande cette application: %s</string>
 </resources>

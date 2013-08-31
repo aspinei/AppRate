@@ -9,12 +9,15 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
+import com.facebook.widget.FacebookDialog;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.List;
 
 public class AppRate implements android.content.DialogInterface.OnClickListener, OnCancelListener {
 
@@ -25,7 +28,10 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
     private AlertDialog.Builder dialogBuilder = null;
     private long minLaunchesUntilPrompt = 0;
     private long minDaysUntilPrompt = 0;
+    private long minLaunchesUntilSocial = 2;
+    private long minDaysUntilSocial = 0;
     private boolean showIfHasCrashed = true;
+    private boolean mShowSocial = false;
 
 
     public AppRate(Activity hostActivity) {
@@ -55,6 +61,26 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
             applicationInfo = null;
         }
         return (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : "(unknown)");
+    }
+
+    /**
+     * @param minLaunchesUntilSocial The minimum number of times the user lunches the application before showing the sharing dialog.<br/>
+     *                               Default value is 10 times.
+     * @return This {@link AppRate} object to allow chaining.
+     */
+    public AppRate setMinLaunchesUntilSocial(long minLaunchesUntilSocial) {
+        this.minLaunchesUntilSocial = minLaunchesUntilSocial;
+        return this;
+    }
+
+    /**
+     * @param minDaysUntilSocial The minimum number of days before showing the sharing dialog.<br/>
+     *                           Default value is 10 days.
+     * @return This {@link AppRate} object to allow chaining.
+     */
+    public AppRate setMinDaysUntilSocial(long minDaysUntilSocial) {
+        this.minDaysUntilSocial = minDaysUntilSocial;
+        return this;
     }
 
     /**
@@ -110,8 +136,9 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
 
         Log.d(TAG, "Init AppRate");
 
-        if (preferences.getBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN, false) || (
-                preferences.getBoolean(PrefsContract.PREF_APP_HAS_CRASHED, false) && !showIfHasCrashed)) {
+        if ((preferences.getBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN, false)
+                && preferences.getBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN_SOCIAL, false))
+                || (preferences.getBoolean(PrefsContract.PREF_APP_HAS_CRASHED, false) && !showIfHasCrashed)) {
             return;
         }
 
@@ -132,10 +159,22 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
             editor.putLong(PrefsContract.PREF_DATE_FIRST_LAUNCH, date_firstLaunch);
         }
 
-        // Show the rate dialog if needed.
-        if (launch_count >= minLaunchesUntilPrompt) {
+        // Show the rate or share dialog if needed, but not in the same time
+        if (!preferences.getBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN, false) && launch_count >= minLaunchesUntilPrompt) {
             if (System.currentTimeMillis() >= date_firstLaunch + (minDaysUntilPrompt * DateUtils.DAY_IN_MILLIS)) {
 
+                mShowSocial = false;
+                if (dialogBuilder != null) {
+                    showDialog(dialogBuilder);
+                } else {
+                    showDefaultDialog();
+                }
+            }
+        } else if (!preferences.getBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN_SOCIAL, false) && launch_count >= minLaunchesUntilSocial
+                && (findFacebookClient() != null || findTwitterClient() != null)) {
+            if (System.currentTimeMillis() >= date_firstLaunch + (minDaysUntilSocial * DateUtils.DAY_IN_MILLIS)) {
+
+                mShowSocial = true;
                 if (dialogBuilder != null) {
                     showDialog(dialogBuilder);
                 } else {
@@ -172,13 +211,16 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
 
         Log.d(TAG, "Create default dialog.");
 
-        String title = String.format(hostActivity.getString(R.string.title), getApplicationName(hostActivity.getApplicationContext()));
-        String message = String.format(hostActivity.getString(R.string.message), getApplicationName(hostActivity.getApplicationContext()));
+        String title = (mShowSocial) ? String.format(hostActivity.getString(R.string.title_social), getApplicationName(hostActivity.getApplicationContext()))
+                : String.format(hostActivity.getString(R.string.title), getApplicationName(hostActivity.getApplicationContext()));
+        String message = (mShowSocial) ? String.format(hostActivity.getString(R.string.message_social), getApplicationName(hostActivity.getApplicationContext()))
+                : String.format(hostActivity.getString(R.string.message), getApplicationName(hostActivity.getApplicationContext()));
 
         new AlertDialog.Builder(hostActivity)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton(hostActivity.getString(R.string.rate), this)
+                .setPositiveButton((mShowSocial) ? hostActivity.getString(R.string.rate_social)
+                        : hostActivity.getString(R.string.rate), this)
                 .setNegativeButton(hostActivity.getString(R.string.nothanks), this)
                 .setNeutralButton(hostActivity.getString(R.string.remindlater), this)
                 .setOnCancelListener(this)
@@ -232,16 +274,35 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
 
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
-                try {
-                    hostActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + hostActivity.getPackageName())));
-                } catch (ActivityNotFoundException e) {
-                    Toast.makeText(hostActivity, hostActivity.getString(R.string.noplay), Toast.LENGTH_SHORT).show();
+                if (mShowSocial) {
+                    Intent fbIntent = findFacebookClient();
+                    Intent twIntent = findTwitterClient();
+                    if (false && fbIntent != null && hostActivity instanceof IHasUiHelper) {
+                        FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(hostActivity)
+                                .setCaption("caption").setDescription("description").setName("wahh").setPicture("")
+                                .setLink("https://play.google.com/store/apps/details?id=".concat(hostActivity.getPackageName()))
+                                .build();
+                        ((IHasUiHelper) hostActivity).getUiHelper().trackPendingDialogCall(shareDialog.present());
+                    } else if (twIntent != null) {
+                        twIntent.setType("text/plain");
+                        twIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+                        twIntent.putExtra(Intent.EXTRA_TEXT, String.format(hostActivity.getString(R.string.recommend), getApplicationName(hostActivity.getApplicationContext()))
+                                .concat(" ").concat("https://play.google.com/store/apps/details?id=").concat(hostActivity.getPackageName()));
+                        hostActivity.startActivity(Intent.createChooser(twIntent, hostActivity.getString(R.string.rate_social)));
+                    }
+                    editor.putBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN_SOCIAL, true);
+                } else {
+                    try {
+                        hostActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + hostActivity.getPackageName())));
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(hostActivity, hostActivity.getString(R.string.noplay), Toast.LENGTH_SHORT).show();
+                    }
+                    editor.putBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN, true);
                 }
-                editor.putBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN, true);
                 break;
 
             case DialogInterface.BUTTON_NEGATIVE:
-                editor.putBoolean(PrefsContract.PREF_DONT_SHOW_AGAIN, true);
+                editor.putBoolean((mShowSocial) ? PrefsContract.PREF_DONT_SHOW_AGAIN_SOCIAL : PrefsContract.PREF_DONT_SHOW_AGAIN, true);
                 break;
 
             case DialogInterface.BUTTON_NEUTRAL:
@@ -259,5 +320,61 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
         if (clickListener != null) {
             clickListener.onClick(dialog, which);
         }
+    }
+
+    public Intent findFacebookClient() {
+        final String[] facebookApps = {
+                "com.facebook.katana",
+                "com.seesmic",
+                "com.hootsuite.droid.full",
+        };
+        Intent fbIntent = new Intent();
+        fbIntent.setType("text/plain");
+        final PackageManager packageManager = hostActivity.getPackageManager();
+        List<ResolveInfo> list = packageManager.queryIntentActivities(
+                fbIntent, PackageManager.MATCH_DEFAULT_ONLY);
+
+        for (int i = 0; i < facebookApps.length; i++) {
+            for (ResolveInfo resolveInfo : list) {
+                String p = resolveInfo.activityInfo.packageName;
+                if (p != null && p.startsWith(facebookApps[i])) {
+                    fbIntent.setPackage(p);
+                    return fbIntent;
+                }
+            }
+        }
+        return null;
+    }
+
+    public Intent findTwitterClient() {
+        final String[] twitterApps = {
+                "com.twitter.android",
+                "com.handmark.tweetcaster.premium",
+                "com.seesmic",
+                "com.com.levelup.touiteur",
+                "com.handmark.tweetcaster",
+                "com.hootsuite.droid.full",
+                "com.alphascope",
+                "com.dotsandlines.carbon",
+                "com.echofon",
+                "com.jv.falcon",
+                "com.tweetlanes.android",
+        };
+        Intent tweetIntent = new Intent();
+        tweetIntent.setType("text/plain");
+        final PackageManager packageManager = hostActivity.getPackageManager();
+        List<ResolveInfo> list = packageManager.queryIntentActivities(
+                tweetIntent, PackageManager.MATCH_DEFAULT_ONLY);
+
+        for (int i = 0; i < twitterApps.length; i++) {
+            for (ResolveInfo resolveInfo : list) {
+                String p = resolveInfo.activityInfo.packageName;
+                if (p != null && p.startsWith(twitterApps[i])) {
+                    tweetIntent.setPackage(p);
+                    return tweetIntent;
+                }
+            }
+        }
+        return null;
     }
 }
