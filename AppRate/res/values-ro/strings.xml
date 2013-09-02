@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AppRate</string>
     <string name="title">Notează %s</string>
     <string name="message">Dacă îți place %s atunci te rog dă-i o notă pe Google Play. Mulțumesc de ajutor !</string>
     <string name="rate">Dă o notă</string>
