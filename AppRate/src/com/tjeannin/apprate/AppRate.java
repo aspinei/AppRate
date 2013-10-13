@@ -277,12 +277,12 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
                 if (mShowSocial) {
                     Intent fbIntent = findFacebookClient();
                     Intent twIntent = findTwitterClient();
-                    if (false && fbIntent != null && hostActivity instanceof IHasUiHelper) {
+                    if (false && fbIntent != null && hostActivity instanceof IHasUIHelper) {
                         FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(hostActivity)
                                 .setCaption("caption").setDescription("description").setName("wahh").setPicture("")
                                 .setLink("https://play.google.com/store/apps/details?id=".concat(hostActivity.getPackageName()))
                                 .build();
-                        ((IHasUiHelper) hostActivity).getUiHelper().trackPendingDialogCall(shareDialog.present());
+                        ((IHasUIHelper) hostActivity).getUiHelper().trackPendingDialogCall(shareDialog.present());
                     } else if (twIntent != null) {
                         twIntent.setType("text/plain");
                         twIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);

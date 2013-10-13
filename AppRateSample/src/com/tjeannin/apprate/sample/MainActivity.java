@@ -12,9 +12,9 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.tjeannin.apprate.AppRate;
-import com.tjeannin.apprate.IHasUiHelper;
+import com.tjeannin.apprate.IHasUIHelper;
 
-public class MainActivity extends Activity implements OnClickListener, IHasUiHelper {
+public class MainActivity extends Activity implements OnClickListener, IHasUIHelper {
 
     private static final String LUNCH_COUNT = "lunch_count";
     private int lunchCount;
