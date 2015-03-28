@@ -8,29 +8,47 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
-import com.facebook.Session;
-import com.facebook.SessionState;
-import com.facebook.UiLifecycleHelper;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.share.Sharer;
+import com.facebook.share.widget.ShareDialog;
 import com.tjeannin.apprate.AppRate;
-import com.tjeannin.apprate.IHasUIHelper;
 
-public class MainActivity extends Activity implements OnClickListener, IHasUIHelper {
+public class MainActivity extends Activity implements OnClickListener {
 
     private static final String LUNCH_COUNT = "lunch_count";
     private int lunchCount;
     private SharedPreferences sharedPreferences;
-    private UiLifecycleHelper uiHelper;
+    private CallbackManager callbackManager;
+    private ShareDialog shareDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        uiHelper = new UiLifecycleHelper(this, new Session.StatusCallback() {
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        callbackManager = CallbackManager.Factory.create();
+        shareDialog = new ShareDialog(this);
+        // this part is optional
+        shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
             @Override
-            public void call(Session session, SessionState state, Exception exception) {
+            public void onSuccess(Sharer.Result result) {
+
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+
             }
         });
-        uiHelper.onCreate(savedInstanceState);
+
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         lunchCount = sharedPreferences.getInt(LUNCH_COUNT, 0) + 1;
@@ -79,31 +97,22 @@ public class MainActivity extends Activity implements OnClickListener, IHasUIHel
     }
 
     @Override
-    public UiLifecycleHelper getUiHelper() {
-        return uiHelper;
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
-        uiHelper.onResume();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        uiHelper.onSaveInstanceState(outState);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        uiHelper.onPause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        uiHelper.onDestroy();
     }
 }

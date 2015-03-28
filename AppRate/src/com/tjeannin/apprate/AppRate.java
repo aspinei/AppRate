@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.widget.Toast;
-import com.facebook.widget.FacebookDialog;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.List;
@@ -275,15 +274,8 @@ public class AppRate implements android.content.DialogInterface.OnClickListener,
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
                 if (mShowSocial) {
-                    Intent fbIntent = findFacebookClient();
                     Intent twIntent = findTwitterClient();
-                    if (false && fbIntent != null && hostActivity instanceof IHasUIHelper) {
-                        FacebookDialog shareDialog = new FacebookDialog.ShareDialogBuilder(hostActivity)
-                                .setCaption("caption").setDescription("description").setName("wahh").setPicture("")
-                                .setLink("https://play.google.com/store/apps/details?id=".concat(hostActivity.getPackageName()))
-                                .build();
-                        ((IHasUIHelper) hostActivity).getUiHelper().trackPendingDialogCall(shareDialog.present());
-                    } else if (twIntent != null) {
+                    if (twIntent != null) {
                         twIntent.setType("text/plain");
                         twIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
                         twIntent.putExtra(Intent.EXTRA_TEXT, String.format(hostActivity.getString(R.string.recommend), getApplicationName(hostActivity.getApplicationContext()))
